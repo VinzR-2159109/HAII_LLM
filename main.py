@@ -4,7 +4,7 @@ import base64
 import shutil
 from ollama import chat, generate
 
-
+# 🎞️ STEP 1: Frame Extraction
 def extract_frames(video_path, output_folder="frames", fps=1):
     os.makedirs(output_folder, exist_ok=True)
     video = cv2.VideoCapture(video_path)
@@ -27,7 +27,7 @@ def extract_frames(video_path, output_folder="frames", fps=1):
     video.release()
     return paths
 
-
+# 🧠 STEP 2: AI Questions Based on User Context
 def ask_for_questions(paths, user_context, model="llava"):
     image_base64_list = []
     for path in paths:
@@ -36,11 +36,11 @@ def ask_for_questions(paths, user_context, model="llava"):
         image_base64_list.append(image_base64)
 
     prompt = (
-        f"The user has provided the following context about the video:\n"
-        f"{user_context.strip()}\n\n"
-        "You will now be shown several images extracted from this video.\n"
-        "Before generating descriptions, please list 1 or 2 clarifying questions you would like to ask the user "
-        "to better understand the actions taking place in the video."
+        f"The user has provided this context:\n{user_context.strip()}\n\n"
+        "You will now be shown several images from the video.\n"
+        "Before describing them, list 2 clarifying questions you'd ask the user "
+        "to better understand the task shown."
+        "But only if you really need the answer to understand the images!"
     )
 
     response = generate(
@@ -51,8 +51,8 @@ def ask_for_questions(paths, user_context, model="llava"):
 
     return response["response"].strip()
 
-
-def describe_images(paths, full_context, model="llava", update_progress=None):
+# 🖼️ STEP 3: Describe Each Image (with memory of previous steps)
+def re_describe_images_with_context(paths, full_context, model="llava", update_progress=None):
     descriptions = []
     total = len(paths)
 
@@ -61,9 +61,27 @@ def describe_images(paths, full_context, model="llava", update_progress=None):
             with open(path, "rb") as f:
                 image_base64 = base64.b64encode(f.read()).decode("utf-8")
 
+            previous_steps = "\n".join(
+                [f"{j+1}. {desc['description']}" for j, desc in enumerate(descriptions)]
+            )
+
             prompt = (
-                f"The user has provided this context:\n{full_context.strip()}\n\n"
-                f"Based on that, describe what is happening in this image in one clear sentence."
+                f"You are helping create work instructions for people with cognitive disabilities.\n\n"
+                f"Context provided by the user:\n{full_context.strip()}\n\n"
+            )
+
+            if i > 0:
+                prompt += (
+                    f"These are the previous {i} steps:\n{previous_steps}\n\n"
+                    f"Now describe image #{i+1}."
+                )
+            else:
+                prompt += "Now describe the first image."
+
+            prompt += (
+                "\nDescribe the action in one clear, simple sentence."
+                "\nFocus on what the person is doing or manipulating."
+                "\nAvoid repeating earlier steps."
             )
 
             response = generate(
@@ -74,8 +92,10 @@ def describe_images(paths, full_context, model="llava", update_progress=None):
 
             description = response["response"].strip()
             descriptions.append({"path": path, "description": description})
+
             if update_progress:
                 update_progress((i + 1) / total)
+
             print(description)
 
         except Exception as e:
@@ -84,59 +104,118 @@ def describe_images(paths, full_context, model="llava", update_progress=None):
 
     return descriptions
 
+# 📝 STEP 4: Save and Edit Descriptions
+def save_descriptions_to_file(descriptions, path="descriptions.txt"):
+    with open(path, "w", encoding="utf-8") as f:
+        for i, d in enumerate(descriptions):
+            f.write(f"{i+1}. {d['description']}\n")
 
-def generate_instructions(descriptions, update_progress=None, model="mistral"):
-    caption_list = [f"{i+1}. {d['description']}" for i, d in enumerate(descriptions)]
-    joined_captions = "\n".join(caption_list)
+def load_descriptions_from_file(path="descriptions.txt"):
+    descriptions = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip():
+                if "." in line:
+                    idx, text = line.strip().split(".", 1)
+                    descriptions.append({"index": int(idx), "description": text.strip()})
+    return descriptions
 
-    prompt = (
-        "You are an assistant that writes clear work instructions for people with cognitive disabilities.\n"
-        "Make sure every step is simple and written as a direct command.\n\n"
-        "Here are the observations extracted from a video:\n"
-        f"{joined_captions}\n\n"
-        "Now generate a numbered list of simple instructions:"
-    )
+# 🧠 STEP 5: Iterative Instruction Generation with Images + Feedback
+def refine_instructions_loop(descriptions, model="llava"):
+    feedback = None
 
-    if update_progress:
-        update_progress(0.1)
-    response = chat(model=model, messages=[{"role": "user", "content": prompt}])
-    if update_progress:
-        update_progress(1.0)
+    while True:
+        prompt = (
+            "You are an assistant that writes clear, step-by-step work instructions for people with cognitive disabilities.\n"
+            "Each instruction is based on a visual frame and its description.\n"
+            "Use the image and its caption to create one numbered instruction per frame.\n"
+            "Make each instruction short, direct, and actionable.\n"
+        )
 
-    return response['message']['content']
+        if feedback:
+            prompt += f"\nUser feedback: {feedback.strip()}\n"
 
+        images = []
+        image_instructions = []
 
+        for i, item in enumerate(descriptions):
+            path = item["path"]
+            with open(path, "rb") as f:
+                image_base64 = base64.b64encode(f.read()).decode("utf-8")
+            images.append(image_base64)
+            image_instructions.append(f"{i+1}. {item['description']}")
 
+        prompt += "\nHere are the images and their descriptions:\n" + "\n".join(image_instructions)
+        prompt += "\n\nNow generate a list of clear, easy-to-follow instructions."
+
+        response = generate(model=model, prompt=prompt, images=images)
+        instructions = response["response"].strip()
+
+        print("\n=== 🛠️ GENERATED WORK INSTRUCTIONS ===\n")
+        print(instructions)
+
+        choice = input("\nAre these instructions acceptable? (y = yes / r = refine with feedback): ").strip().lower()
+
+        if choice == "y":
+            return instructions
+        elif choice == "r":
+            feedback = input("What should be improved?\n")
+        else:
+            print("Please type 'y' or 'r'.")
+
+# 💾 STEP 6: Save Final Instructions
+def save_instructions_to_file(instructions, path="instructions.txt"):
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(instructions)
+
+# 🧼 Optional Cleanup
+def cleanup_folder(folder_path):
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+
+# 🚀 MAIN WORKFLOW
 if __name__ == "__main__":
     video_path = "test_video.mp4"
     output_folder = "frames"
     fps = 1
 
-    print("=== STEP 0: Provide Context ===")
-    user_context = input("Briefly describe what's happening in the video (e.g. 'person assembling a chair'): ")
+    print("===STEP 0: Describe Your Video ===")
+    user_context = input("Briefly describe what's happening in the video (e.g. 'person assembling a shelf'): ")
 
-    print("\n=== STEP 1: Extracting Frames ===")
+    print("\n===STEP 1: Extracting Video Frames ===")
     frame_paths = extract_frames(video_path, output_folder, fps)
 
-    print("\n=== STEP 2: AI Will Ask Clarifying Questions ===")
+    print("\n===STEP 2: AI is Generating Questions ===")
     questions = ask_for_questions(frame_paths, user_context)
-    print("\nThe AI has the following questions for you:\n")
+    print("\nThe AI would like you to answer the following questions:\n")
     print(questions)
 
-    print("\n=== STEP 3: Your Answers ===")
-    user_answers = input("Please answer the AI's questions in a single paragraph:\n")
-
+    print("\n===STEP 3: Your Answers ===")
+    user_answers = input("Please answer the AI's questions in one paragraph:\n")
     full_context = f"{user_context.strip()}\n\nUser's answers to clarifying questions:\n{user_answers.strip()}"
 
-    print("\n=== STEP 4: Describing Images With Full Context ===")
-    descriptions = describe_images(
+    print("\n=== STEP 4: Describing Images With Context ===")
+    descriptions = re_describe_images_with_context(
         frame_paths,
         full_context,
         update_progress=lambda x: print(f"Progress: {x*100:.2f}%")
     )
 
-    print("\n=== STEP 5: Generating Final Instructions ===")
-    instructions = generate_instructions(descriptions, lambda x: print(f"Progress: {x*100:.2f}%"))
+    print("\n=== STEP 5: Review and Edit Descriptions ===")
+    save_descriptions_to_file(descriptions, "descriptions.txt")
+    print("Descriptions saved to 'descriptions.txt'.")
+    input("Edit the file if needed, then press ENTER to continue...")
+    user_descriptions = load_descriptions_from_file("descriptions.txt")
 
-    print("\n=== Final Work Instructions ===\n")
-    print(instructions)
+    # Merge paths back into loaded descriptions
+    for i, d in enumerate(user_descriptions):
+        d["path"] = frame_paths[i]
+
+    print("\n=== STEP 6: Iterative Instruction Refinement ===")
+    final_instructions = refine_instructions_loop(user_descriptions)
+
+    print("\n=== STEP 7: Saving Final Instructions ===")
+    save_instructions_to_file(final_instructions, "instructions.txt")
+    print("Instructions saved to 'instructions.txt'.")
+
+    # Optional: cleanup_folder(output_folder)
