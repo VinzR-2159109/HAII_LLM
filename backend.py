@@ -2,11 +2,13 @@ import os
 import cv2
 from PIL import Image
 import torch
-from transformers import BlipProcessor, BlipForConditionalGeneration
+from transformers import AutoProcessor, AutoModelForCausalLM
 from ollama import chat
+from ollama import generate
+import base64
 
-processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
-model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
+processor = AutoProcessor.from_pretrained("microsoft/git-large")
+model = AutoModelForCausalLM.from_pretrained("microsoft/git-large")
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
@@ -32,17 +34,33 @@ def extract_frames(video_path, output_folder="frames", fps=1):
     video.release()
     return paths
 
+
+
+def image_to_base64(image_path):
+    with open(image_path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
 def describe_images(paths, update_progress):
     descriptions = []
     total = len(paths)
+
     for i, path in enumerate(paths):
-        image = Image.open(path).convert("RGB")
-        inputs = processor(image, return_tensors="pt").to(device)
-        out = model.generate(**inputs)
-        caption = processor.decode(out[0], skip_special_tokens=True)
-        descriptions.append(caption)
+        image_base64 = image_to_base64(path)
+
+        prompt = "Describe what the person is doing in the image."
+
+        response = generate(
+            model="llava",
+            prompt=prompt,
+            images=[image_base64]
+        )
+
+        description = response["response"].strip()
+        descriptions.append(description)
         update_progress((i + 1) / total)
+
     return descriptions
+
 
 def generate_instructions_ollama(descriptions, update_progress=None, model="mistral"):
     caption_list = [f"{i+1}. {desc}" for i, desc in enumerate(descriptions)]
@@ -62,3 +80,19 @@ def generate_instructions_ollama(descriptions, update_progress=None, model="mist
     if update_progress:
         update_progress(1.0)
     return response['message']['content']
+
+
+if __name__ == "__main__":
+    video_path = "test_video.mp4"
+    output_folder = "frames"
+    fps = 1
+
+    # Extract frames from the video
+    frame_paths = extract_frames(video_path, output_folder, fps)
+
+    # Describe images
+    descriptions = describe_images(frame_paths, lambda x: print(f"Progress: {x*100:.2f}%"))
+
+    # Generate instructions using Ollama
+    instructions = generate_instructions_ollama(descriptions, lambda x: print(f"Progress: {x*100:.2f}%"))
+    print(instructions)
