@@ -5,7 +5,6 @@ venv/
 t
 frames/
 
-*.mp4
 *.avi
 *.mov
 
