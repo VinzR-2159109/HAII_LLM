@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload a Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f6f8fa;
+            padding: 40px;
+            max-width: 700px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        form {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .delete-btn-inline {
+            display: none;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            font-size: 18px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 38px;
+        }
+
+        .delete-btn-inline:hover {
+            background-color: #a71d2a;
+        }
+
+        video {
+            display: none;
+            width: 100%;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 9999;
+            text-align: center;
+            padding-top: 20%;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        #loadingOverlay p {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            margin: 0 auto;
+            width: 60px;
+            height: 60px;
+            border: 6px solid #ccc;
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Upload and Preview Video</h1>
+
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="{{ form.video.id_for_label }}">Video:</label>
+        <div class="file-input-wrapper">
+            {{ form.video }}
+            <button type="button" class="delete-btn-inline" id="deleteBtn">x</button>
+        </div>
+
+        <video id="preview" controls muted autoplay></video>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Processing video, please wait...</p>
+    </div>
+
+    <script>
+        let input = document.querySelector('input[type="file"]');
+        const preview = document.getElementById("preview");
+        const deleteBtn = document.getElementById("deleteBtn");
+        const uploadForm = document.getElementById("uploadForm");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+
+        function resetInput() {
+            const wrapper = document.querySelector('.file-input-wrapper');
+            const newInput = input.cloneNode(true);
+            newInput.value = "";
+            wrapper.replaceChild(newInput, input);
+            input = newInput;
+            input.addEventListener("change", handleFileChange);
+        }
+
+        function handleFileChange() {
+            const file = input.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                preview.src = url;
+                preview.style.display = "block";
+                deleteBtn.style.display = "inline-block";
+            }
+        }
+
+        function hidePreviewAndDelete() {
+            preview.src = "";
+            preview.style.display = "none";
+            deleteBtn.style.display = "none";
+        }
+
+        input.addEventListener("change", handleFileChange);
+
+        deleteBtn.addEventListener("click", function () {
+            hidePreviewAndDelete();
+            resetInput();
+        });
+
+        uploadForm.addEventListener("submit", function () {
+            loadingOverlay.style.display = "block";
+        });
+    </script>
+
+</body>
+</html>
