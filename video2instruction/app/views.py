@@ -26,13 +26,13 @@ def upload_view(request):
                     dest.write(chunk)
 
             request.session["video_path"] = video_path
+            request.session["context"] = request.POST.get("context", "").strip()
+
             return redirect("describe")
     else:
         form = UploadForm()
 
     return render(request, "upload.html", {"form": form})
-
-
 
 def describe_view(request):
     video_path = request.session.get("video_path")
@@ -41,8 +41,8 @@ def describe_view(request):
 
     frame_data = handle_video(video_path)
 
-    context = request.POST.get("context", "").strip()
-    request.session["context"] = context
+    context = request.session.get("context", "")
+    print("Context loaded:", context)
 
     descriptions = describe_images(frame_data, context)
 
@@ -54,9 +54,6 @@ def describe_view(request):
         "descriptions": descriptions,
         "media_url": "/media/"
     })
-
-
-
 
 def generate_view(request):
     descriptions = []
@@ -89,13 +86,16 @@ def save_instructions_view(request):
 
     for i in range(total):
         text = request.POST.get(f"text_{i}", "").strip()
-        locked = request.POST.get(f"locked_{i}") == "on"
         final.append({
-            "text": text,
-            "locked": locked
+            "text": text
         })
 
     with open("media/descriptions.json", "w", encoding="utf-8") as f:
         json.dump(final, f, indent=2)
+    
+    with open("media/final_instructions.md", "w", encoding="utf-8") as f:
+            f.write("# Final Instructions\n\n")
+            for i, item in enumerate(final, start=1):
+                f.write(f"{i}. {item['text']}\n")
 
     return render(request, "done.html", {"instructions": final})

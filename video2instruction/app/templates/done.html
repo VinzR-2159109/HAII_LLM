@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Final Instructions</title>
+  <style>
+    body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: auto;
+    padding: 40px;
+    background: #f9f9f9;
+    }
+
+    h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    }
+
+    ol {
+    list-style: decimal inside;
+    padding: 0;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+    }
+
+    li {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e6e6e6;
+    font-size: 16px;
+    line-height: 1.5;
+    }
+
+    li:last-child {
+    border-bottom: none;
+    }
+
+    li:hover {
+    background-color: #f0f8ff; /* very light blue on hover */
+    }
+
+    .button-bar {
+    margin-top: 30px;
+    text-align: center;
+    }
+
+    button, a.button-link {
+    display: inline-block;
+    margin: 10px;
+    padding: 14px 24px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    }
+
+    button:hover, a.button-link:hover {
+    background-color: #0056b3;
+    }
+
+  </style>
+</head>
+<body>
+    <h1>Final Instructions</h1>
+
+    <ol>
+    {% for instruction in instructions %}
+        <li>{{ instruction.text }}</li>
+    {% endfor %}
+    </ol>
+
+    <div class="button-bar">
+        <a href="{% url 'upload' %}" class="button-link">Restart ⟳</a>
+        <a href="/media/final_instructions.md" class="button-link" download>Download ⬇️</a>
+    </div>
+</body>
+</html>

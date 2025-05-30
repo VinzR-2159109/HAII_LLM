@@ -1,38 +1,26 @@
 [
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0000.jpg",
-    "description": "Bowls on countertop next to microwave."
-  },
-  {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0001.jpg",
-    "description": "Six bowls lined up on a kitchen counter."
+    "description": "The image shows a collection of small plastic containers filled with colorful balls."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0002.jpg",
-    "description": "Six bowls lined up on a kitchen counter."
+    "description": "sorting M&M candies into various colored plastic containers lined up on a countertop."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0003.jpg",
-    "description": "Bowls filled with assorted candies lined up on a kitchen counter."
+    "description": "The fourth image shows a collection of small plastic containers filled with different types of candy sitting on top of a kitchen counter."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0004.jpg",
-    "description": "Bowls filled with assorted candies are organized next to microwave for easy access and decoration."
+    "description": "Image #5 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0005.jpg",
-    "description": "Six bowls of colorful candy on a counter."
+    "description": "Image #6 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop, with a microwave in the background."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0006.jpg",
-    "description": "Bowls with assorted candies sitting in front of a microwave."
-  },
-  {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0007.jpg",
-    "description": "The thumb is up and giving a thumbs up."
-  },
-  {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0008.jpg",
-    "description": "The candy bowls are full and ready for use."
+    "description": "Image #7 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop, with a microwave in the background."
   }
 ]

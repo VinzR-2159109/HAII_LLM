@@ -68,10 +68,6 @@
   <div class="instruction">
     <div class="lock-row">
       <label>Instruction {{ forloop.counter }}</label>
-      <label>
-        <input type="checkbox" name="locked_{{ forloop.counter0 }}" onchange="toggleLock(this, '{{ forloop.counter0 }}')">
-        Lock
-      </label>
     </div>
     <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
   </div>
@@ -81,13 +77,6 @@
     <button type="submit">Save Final Instructions</button>
   </div>
 </form>
-
-<script>
-  function toggleLock(checkbox, index) {
-    const textarea = document.querySelector(`textarea[name="text_${index}"]`);
-    textarea.disabled = checkbox.checked;
-  }
-</script>
 
 </body>
 </html>
