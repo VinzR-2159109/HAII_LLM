@@ -1,26 +1,11 @@
 [
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0001.jpg",
-    "description": "The image shows a collection of small plastic containers filled with colorful balls."
+    "text": "Organize candies in different bowls"
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0002.jpg",
-    "description": "sorting M&M candies into various colored plastic containers lined up on a countertop."
+    "text": "Place bowls near the microwave"
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0003.jpg",
-    "description": "The fourth image shows a collection of small plastic containers filled with different types of candy sitting on top of a kitchen counter."
-  },
-  {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0004.jpg",
-    "description": "Image #5 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop."
-  },
-  {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0005.jpg",
-    "description": "Image #6 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop, with a microwave in the background."
-  },
-  {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0006.jpg",
-    "description": "Image #7 captures a moment in a kitchen where someone is engaged in sorting M&M candies into various colored plastic containers lined up on a countertop, with a microwave in the background."
+    "text": "Enjoy colorful and sweet treats"
   }
 ]

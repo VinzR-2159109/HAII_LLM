@@ -41,7 +41,7 @@ def describe_view(request):
 
     frame_data = handle_video(video_path)
 
-    context = request.session.get("context", "")
+    context = request.session.get("context")
     print("Context loaded:", context)
 
     descriptions = describe_images(frame_data, context)

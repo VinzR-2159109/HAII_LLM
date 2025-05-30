@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Generated Instructions</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,37 +12,68 @@
       padding: 40px;
       background: #f5f5f5;
     }
+
     h1 {
       text-align: center;
       margin-bottom: 30px;
     }
+
+    .instruction-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .instruction-group {
+      margin-bottom: 8px;
+    }
+
     .instruction {
-      background: white;
-      padding: 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        margin-bottom: 0;
+        cursor: grab;
     }
-    textarea {
-      width: 90%;
-      font-size: 14px;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      resize: none;
-      overflow: hidden;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+
+    .instruction-number {
+        font-weight: bold;
+        font-size: 24px;
+        min-width: 30px;
+        text-align: center;
     }
+
+    .instruction.dragging {
+      opacity: 0.0;
+    }
+
     .lock-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 8px;
     }
+
+    textarea {
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 14px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: none;
+      overflow: hidden;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
     .submit-wrapper {
       text-align: center;
       margin-top: 30px;
     }
+
     button {
       padding: 14px 30px;
       font-size: 16px;
@@ -50,33 +82,157 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      transition: background-color 0.2s ease;
     }
+
     button:hover {
       background-color: #218838;
+    }
+
+    .delete-btn {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .delete-btn:hover {
+        background-color: #d32f2f;
+    }
+
+    .add-between-btn {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+      padding: 6px 0;
+      font-size: 14px;
+      background-color: transparent;
+      color: #007bff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .add-between-btn:hover {
+      color: #0056b3;
+      background-color: rgba(0, 123, 255, 0.05);
     }
   </style>
 </head>
 <body>
 
-<h1>Final Instructions</h1>
+<h1>Generated Instructions</h1>
 
-<form method="post" action="{% url 'save_instructions' %}">
+<form id="instructionForm" method="post" action="{% url 'save_instructions' %}">
   {% csrf_token %}
-  <input type="hidden" name="total" value="{{ instructions|length }}">
+  <input type="hidden" name="total" id="totalField" value="{{ instructions|length }}">
 
-  {% for instruction in instructions %}
-  <div class="instruction">
-    <div class="lock-row">
-      <label>Instruction {{ forloop.counter }}</label>
+  <div id="instructionList" class="instruction-list">
+    {% for instruction in instructions %}
+    <div class="instruction-group">
+      <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
+
+      <div class="instruction">
+        <div class="lock-row">
+          <span class="instruction-number">1.</span>
+        </div>
+        <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
+          <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+      </div>
     </div>
-    <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
+    {% endfor %}
+
+    <div class="instruction-group final-add-group">
+      <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
+    </div>
   </div>
-  {% endfor %}
 
   <div class="submit-wrapper">
     <button type="submit">Save Final Instructions</button>
   </div>
 </form>
+
+<script>
+  const sortable = Sortable.create(document.getElementById('instructionList'), {
+      animation: 150,
+      ghostClass: 'dragging',
+      handle: '.instruction',
+      draggable: '.instruction-group:not(.final-add-group)',
+      onEnd: updateIndexes
+  });
+
+  updateIndexes();
+
+  function deleteInstruction(button) {
+    const group = button.closest('.instruction-group');
+    const parent = group.parentElement;
+    parent.removeChild(group);
+    updateIndexes();
+  }
+
+  function addInstructionAt(button) {
+      const parent = document.getElementById('instructionList');
+      const count = parent.querySelectorAll('.instruction-group:not(.final-add-group)').length;
+
+      const group = document.createElement('div');
+      group.className = 'instruction-group';
+
+      const addButton = document.createElement('button');
+      addButton.type = 'button';
+      addButton.className = 'add-between-btn';
+      addButton.textContent = '+ Add Instruction Here';
+      addButton.onclick = function() { addInstructionAt(addButton); };
+
+      const instruction = document.createElement('div');
+      instruction.className = 'instruction';
+      instruction.innerHTML = `
+        <span class="instruction-number">${count + 1}</span>
+        <textarea name="text_${count}" rows="2"></textarea>
+        <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+      `;
+
+      group.appendChild(addButton);
+      group.appendChild(instruction);
+
+      // Insert the new instruction group BEFORE the clicked "Add Here" button's group
+      parent.insertBefore(group, button.closest('.instruction-group'));
+
+
+      updateIndexes();
+  }
+
+
+  function updateIndexes() {
+      const parent = document.getElementById('instructionList');
+      const groups = parent.querySelectorAll('.instruction-group:not(.final-add-group)');
+      const totalField = document.getElementById('totalField');
+
+      groups.forEach((group, index) => {
+          const textarea = group.querySelector('textarea');
+          const numberSpan = group.querySelector('.instruction-number');
+
+          if (textarea) {
+              textarea.name = `text_${index}`;
+          }
+
+          if (numberSpan) {
+              numberSpan.textContent = `${index + 1}.`;
+          }
+      });
+
+      totalField.value = groups.length;
+  }
+</script>
 
 </body>
 </html>
