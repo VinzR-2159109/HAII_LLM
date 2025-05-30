@@ -1,30 +1,38 @@
 [
   {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0000.jpg",
+    "description": "Bowls on countertop next to microwave."
+  },
+  {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0001.jpg",
-    "description": "Lay tee down flat."
+    "description": "Six bowls lined up on a kitchen counter."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0002.jpg",
-    "description": "Smooth it out"
+    "description": "Six bowls lined up on a kitchen counter."
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0003.jpg",
+    "description": "Bowls filled with assorted candies lined up on a kitchen counter."
   },
   {
     "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0004.jpg",
-    "description": "Step 5: Arrange the fabric on a mannequin or display stand for showcasing the finished product."
+    "description": "Bowls filled with assorted candies are organized next to microwave for easy access and decoration."
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0010.jpg",
-    "description": "A person is tapping on a completed piece of folded fabric with their hand, presumably to demonstrate or inspect it."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0005.jpg",
+    "description": "Six bowls of colorful candy on a counter."
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0011.jpg",
-    "description": "Image 12: A person's hands are carefully tucking in the edge of a folded fabric item, ensuring that the end is neatly hidden."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0006.jpg",
+    "description": "Bowls with assorted candies sitting in front of a microwave."
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0012.jpg",
-    "description": "Image 13: The person is carefully holding up a completed piece of folded fabric with both hands, showcasing it for all to see."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0007.jpg",
+    "description": "The thumb is up and giving a thumbs up."
   },
   {
-    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0014.jpg",
-    "description": "Image #15: A person is using their hands to fold and manipulate a fabric item on a surface, likely in the process of creating or arranging it for display."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0008.jpg",
+    "description": "The candy bowls are full and ready for use."
   }
 ]

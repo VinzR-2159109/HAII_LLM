@@ -5,6 +5,10 @@ import base64
 from django.conf import settings
 from ollama import generate
 
+from typing import List
+from pydantic import BaseModel
+from langchain.output_parsers import PydanticOutputParser
+
 def handle_video(video_path, fps=1):
     frame_dir = os.path.join(settings.MEDIA_ROOT, "frames")
     os.makedirs(frame_dir, exist_ok=True)
@@ -106,22 +110,10 @@ def describe_images(frame_data, context, model="llava", update_progress=None):
     return descriptions
 
 
-def generate_instructions(descriptions, model="llava"):
-    prompt = (
-        "You are a careful assistant that generates one short, clear instruction per image description, "
-        "suitable for people with cognitive disabilities.\n"
-        "Instructions must be simple, actionable, and easy to follow.\n"
-        "Do not reference images or numbers.\n"
-        "Write only one instruction per description.\n"
-        "Output format:\n"
-        "### Start the instruction with this prefix, exactly like this.\n"
-        "### For example:\n"
-        "### Place the fabric flat on the table.\n"
-        "### Pick up the scissors.\n"
-        "### Cut along the dotted line.\n\n"
-        "Descriptions:\n"
-    )
+class InstructionSet(BaseModel):
+    instructions: List[str]
 
+def generate_instructions(descriptions, model="llava"):
     images = []
     image_instructions = []
 
@@ -132,24 +124,43 @@ def generate_instructions(descriptions, model="llava"):
         images.append(image_base64)
         image_instructions.append(item['description'])
 
-    prompt += "\n".join(f"- {desc}" for desc in image_instructions)
-    prompt += (
-        "\n\nNow write one instruction for each description above.\n"
-        "Respond only with instructions, each prefixed by '###'. No bullet points. No extra text.\n"
-        "Your entire response must look like:\n"
-        "### Do this\n### Do that\n### Do something else\n"
+    # Setup parser
+    parser = PydanticOutputParser(pydantic_object=InstructionSet)
+
+    # Build prompt
+    prompt = (
+        "You are a careful assistant that generates one short, clear instruction per image description, "
+        "suitable for people with cognitive disabilities.\n"
+        "Instructions must be simple, actionable, and easy to follow.\n"
+        "Do not reference images or numbers.\n"
+        "Write only one instruction per description.\n\n"
+        "Descriptions:\n"
     )
 
+    prompt += "\n".join(f"- {desc}" for desc in image_instructions)
+
+    # ⚠️ Use clear manual format instructions!
+    prompt += (
+        "\n\nNow respond in this exact JSON format:\n\n"
+        "{\n"
+        '  "instructions": [\n'
+        '    "Instruction for first description.",\n'
+        '    "Instruction for second description.",\n'
+        '    "..."\n'
+        "  ]\n"
+        "}\n\n"
+        "Respond with JSON only. Do not include explanations. Do not include a JSON schema. Do not include markdown (no ```json)."
+    )
+
+    # Generate
     response = generate(model=model, prompt=prompt, images=images)
     raw = response["response"]
-    print("Raw instructions:\n", raw)
+    print("Raw response:", raw)
 
-    instructions = [
-        line.replace("###", "").strip()
-        for line in raw.split("\n")
-        if line.strip().startswith("###")
-    ]
-
-    return instructions
-
-
+    # Let LangChain parser handle parsing
+    try:
+        parsed_obj = parser.parse(raw)
+        return parsed_obj.instructions
+    except Exception as e:
+        print(f"LangChain parsing failed: {e}")
+        return []
