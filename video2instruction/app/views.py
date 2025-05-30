@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 
 from django.shortcuts import render, redirect
 from django.conf import settings
@@ -11,8 +12,12 @@ def upload_view(request):
     if request.method == "POST":
         form = UploadForm(request.POST, request.FILES)
         if form.is_valid():
-            video = request.FILES["video"]
+            frames_dir = os.path.join(settings.MEDIA_ROOT, "frames")
+            if os.path.exists(frames_dir):
+                shutil.rmtree(frames_dir)
+            os.makedirs(frames_dir, exist_ok=True)
 
+            video = request.FILES["video"]
             os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
             video_path = os.path.join(settings.MEDIA_ROOT, video.name)
 
@@ -28,20 +33,19 @@ def upload_view(request):
     return render(request, "upload.html", {"form": form})
 
 
+
 def describe_view(request):
     video_path = request.session.get("video_path")
     if not video_path:
         return redirect("upload")
 
-    frame_paths = request.session.get("frames")
-    if not frame_paths:
-        frame_paths = handle_video(video_path)
-        request.session["frames"] = frame_paths
+    frame_data = handle_video(video_path)
 
     context = request.POST.get("context", "").strip()
     request.session["context"] = context
 
-    descriptions = describe_images(frame_paths, context)
+    descriptions = describe_images(frame_data, context)
+
     descriptions_path = os.path.join(settings.MEDIA_ROOT, "descriptions.json")
     with open(descriptions_path, "w", encoding="utf-8") as f:
         json.dump(descriptions, f, indent=2)
@@ -50,6 +54,8 @@ def describe_view(request):
         "descriptions": descriptions,
         "media_url": "/media/"
     })
+
+
 
 
 def generate_view(request):
@@ -74,3 +80,22 @@ def generate_view(request):
         "instructions": instructions
     })
 
+def save_instructions_view(request):
+    if request.method != "POST":
+        return redirect("generate")
+
+    total = int(request.POST.get("total", 0))
+    final = []
+
+    for i in range(total):
+        text = request.POST.get(f"text_{i}", "").strip()
+        locked = request.POST.get(f"locked_{i}") == "on"
+        final.append({
+            "text": text,
+            "locked": locked
+        })
+
+    with open("media/descriptions.json", "w", encoding="utf-8") as f:
+        json.dump(final, f, indent=2)
+
+    return render(request, "done.html", {"instructions": final})

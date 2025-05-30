@@ -1,30 +1,30 @@
 [
   {
-    "path": "media/frames/frame_0000.jpg",
-    "description": "The image shows a countertop with several bowls. One bowl is filled with candy the others are empty."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0001.jpg",
+    "description": "Lay tee down flat."
   },
   {
-    "path": "media/frames/frame_0001.jpg",
-    "description": "The first bowln is filled with orange candy"
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0002.jpg",
+    "description": "Smooth it out"
   },
   {
-    "path": "media/frames/frame_0002.jpg",
-    "description": "Organizing and separating candy by type into colored plastic cups."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0004.jpg",
+    "description": "Step 5: Arrange the fabric on a mannequin or display stand for showcasing the finished product."
   },
   {
-    "path": "media/frames/frame_0003.jpg",
-    "description": "The image shows a countertop with several bowls of candy and two stacks of small plastic cups, one stack of blue cups and another of pink cups, along with the bowls of candy."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0010.jpg",
+    "description": "A person is tapping on a completed piece of folded fabric with their hand, presumably to demonstrate or inspect it."
   },
   {
-    "path": "media/frames/frame_0004.jpg",
-    "description": "Person organizing and separating colorful candies by type into small plastic cups."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0011.jpg",
+    "description": "Image 12: A person's hands are carefully tucking in the edge of a folded fabric item, ensuring that the end is neatly hidden."
   },
   {
-    "path": "media/frames/frame_0005.jpg",
-    "description": "A person is arranging bowls of candy and cups into an organized display."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0012.jpg",
+    "description": "Image 13: The person is carefully holding up a completed piece of folded fabric with both hands, showcasing it for all to see."
   },
   {
-    "path": "media/frames/frame_0006.jpg",
-    "description": "The image does not depict a single clear, simple action. It appears to be a collage of various images showing different stages of organizing candies by type into small plastic cups."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0014.jpg",
+    "description": "Image #15: A person is using their hands to fold and manipulate a fabric item on a surface, likely in the process of creating or arranging it for display."
   }
 ]
