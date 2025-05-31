@@ -7,7 +7,6 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 900px;
       margin: auto;
       padding: 40px;
       background: #f5f5f5;
@@ -157,46 +156,55 @@
 
 <h1>Generated Instructions</h1>
 
-<form id="instructionForm" method="post" action="{% url 'save_instructions' %}">
-  {% csrf_token %}
-  <input type="hidden" name="total" id="totalField" value="{{ instructions|length }}">
+<div style="display: flex; flex-direction: row; gap: 40px; align-items: flex-start; max-width: 1400px; margin: auto;">
+  <div style="flex: 1;">
+    <video controls muted autoplay loop style="width: 100%; max-width: 400px;">
+      <source src="/media/{{ video_filename }}" type="video/mp4">
+    </video>
+  </div>
 
-  <div id="instructionList" class="instruction-list">
-    {% for instruction in instructions %}
-    <div class="instruction-group">
-      <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
+   <div style="flex: 2;">
+      <form id="instructionForm" method="post" action="{% url 'save_instructions' %}">
+      {% csrf_token %}
+      <input type="hidden" name="total" id="totalField" value="{{ instructions|length }}">
 
-      <div class="instruction">
-        <div class="lock-row">
-          <span class="instruction-number">1.</span>
+      <div id="instructionList" class="instruction-list">
+        {% for instruction in instructions %}
+        <div class="instruction-group">
+          <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
+
+          <div class="instruction">
+            <div class="lock-row">
+              <span class="instruction-number">1.</span>
+            </div>
+
+            <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
+
+            <div class="instruction-btns">
+              <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+              <button type="button" class="lock-btn" onclick="lockInstruction(this)">🔓</button>
+            </div>
+          </div>
         </div>
+        {% endfor %}
 
-        <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
-
-        <div class="instruction-btns">
-          <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
-          <button type="button" class="lock-btn" onclick="lockInstruction(this)">🔓</button>
+        <div class="instruction-group final-add-group">
+          <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
         </div>
       </div>
-    </div>
-    {% endfor %}
 
-    <div class="instruction-group final-add-group">
-      <button type="button" class="add-between-btn" onclick="addInstructionAt(this)">+ Add Instruction Here</button>
-    </div>
-  </div>
+      <label for="user_refinements" style="font-size: 18px; font-weight: bold; margin: 10 10 0 0;">Refine Instructions:</label>
+      <div id="refine_div" style="display: flex; flex-direction: row;">
+        <textarea name="user_refinements" rows="4" placeholder="Type here to refine not locked instructions"></textarea>
+        <button type="button" id="refine_button" style="background-color: gray; font-size: xx-large; margin-left: 10px;">🔄</button>
+      </div>
 
-  <label for="user_refinements" style="font-size: 18px; font-weight: bold; margin: 10 10 0 0;">Refine Instructions:</label>
-  <div id="refine_div" style="display: flex; flex-direction: row;">
-    <textarea name="user_refinements" rows="4" placeholder="Type here to refine not locked instructions"></textarea>
-    <button type="button" id="refine_button" style="background-color: gray; font-size: xx-large; margin-left: 10px;">🔄</button>
-  </div>
-
-  <div class="submit-wrapper">
-    <button type="submit">Save Final Instructions</button>
-  </div>
-</form>
-
+      <div class="submit-wrapper">
+        <button type="submit">Save Final Instructions</button>
+      </div>
+    </form>
+   </div>
+</div>
 
 <script>
   const sortable = Sortable.create(document.getElementById('instructionList'), {
@@ -216,9 +224,41 @@
     updateIndexes();
   }
 
-  function addInstructionAt(button) {
+  async function addInstructionAt(button) {
       const parent = document.getElementById('instructionList');
       const count = parent.querySelectorAll('.instruction-group:not(.final-add-group)').length;
+
+      const instructionElements = document.querySelectorAll('.instruction');
+      const instructions = [];
+      instructionElements.forEach((instruction, index) => {
+          const textarea = instruction.querySelector('textarea');
+          const locked = instruction.classList.contains('locked');
+
+          instructions.push({
+              index: index,
+              text: textarea.value,
+              locked: locked
+          });
+      });
+
+      const allGroups = Array.from(document.querySelectorAll('.instruction-group:not(.final-add-group)'));
+      const targetGroup = button.closest('.instruction-group');
+      const insertIndex = allGroups.indexOf(targetGroup);
+
+      const response = await fetch('/add_instruction/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              instructions: instructions,
+              insert_index: insertIndex
+          })
+      });
+
+      const data = await response.json();
+      const newText = data.new_instruction || "";
 
       const group = document.createElement('div');
       group.className = 'instruction-group';
@@ -235,10 +275,10 @@
           <div class="lock-row">
             <span class="instruction-number">${count + 1}.</span>
           </div>
-          <textarea name="text_${count}" rows="2"></textarea>
+          <textarea name="text_${count}" rows="2">${newText}</textarea>
           <div class="instruction-btns">
             <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
-            <button type="button" class="lock-btn" onclick="lockInstruction(this)">Lock</button>
+            <button type="button" class="lock-btn" onclick="lockInstruction(this)">🔓</button>
           </div>
       `;
 
@@ -246,9 +286,10 @@
       group.appendChild(instruction);
 
       parent.insertBefore(group, button.closest('.instruction-group'));
-    
+
       updateIndexes();
   }
+
 
   function lockInstruction(button) {
     const instruction = button.closest('.instruction');

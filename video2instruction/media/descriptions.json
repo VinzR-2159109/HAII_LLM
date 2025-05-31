@@ -1,8 +1,42 @@
 [
   {
-    "text": "Get some cups on the table."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0001.jpg",
+    "description": "Lay t shirt down flat."
   },
   {
-    "text": "Place one ball in each cup on the table."
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0002.jpg",
+    "description": "Achieving perfection by ironing out wrinkles for an impeccably smooth finish."
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0004.jpg",
+    "description": "Fold the right side of a folded shirt."
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0006.jpg",
+    "description": "Fold a dark blue t-shirt"
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0007.jpg",
+    "description": "Person using hands to manipulate and shape fabric of a shirt."
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0009.jpg",
+    "description": "fold the left side in"
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0012.jpg",
+    "description": "a hand is pressing down on a piece of cloth"
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0014.jpg",
+    "description": "fold in half"
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0015.jpg",
+    "description": "A hand holding up a shirt is skillfully using it to manipulate and shape the fabric for the final folding"
+  },
+  {
+    "path": "/home/vinzroosen/Desktop/HAII_LLM/video2instruction/media/frames/frame_0017.jpg",
+    "description": "Image #18 shows a person with their hand on a piece of dark blue cloth, possibly demonstrating an additional step in the process of folding or shaping the fabric before ironing or displaying the finished product."
   }
 ]

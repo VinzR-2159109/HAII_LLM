@@ -1,5 +1,6 @@
 import os
 import cv2
+import re
 import base64
 
 from django.conf import settings
@@ -159,6 +160,64 @@ def generate_instructions(descriptions, model="llava"):
     except Exception as e:
         print(f"LangChain parsing failed: {e}")
         return []
+    
+def add_instruction(current_instructions, insert_index, descriptions, model="llava"):
+    prompt = (
+        "You are helping create step-by-step work instructions for people with cognitive disabilities.\n\n"
+        "Current instructions:\n"
+    )
+    print(f"<Current instructions (insert_index={insert_index}): {current_instructions}\n")
+    for i, step in enumerate(current_instructions, start=1):
+        if step == "":
+            prompt += f"{i}. (empty)\n"
+        else:
+            prompt += f"{i}. {step}\n"
+
+    prompt += "\n"
+
+    if insert_index == 0:
+        prompt += (
+            "Please generate a new instruction to insert **BEFORE step 1**.\n"
+        )
+    elif insert_index >= len(current_instructions):
+        prompt += (
+            "Please generate the next logical instruction to add at the END.\n"
+        )
+    else:
+        before = current_instructions[insert_index - 1]
+        after = current_instructions[insert_index]
+        prompt += (
+            f"You will insert a new instruction **BETWEEN step {insert_index} and step {insert_index + 1}**.\n"
+            f"Step {insert_index}: {before if before != '' else '(empty)'}\n"
+            f"Step {insert_index + 1}: {after if after != '' else '(empty)'}\n"
+        )
+
+    if insert_index < len(descriptions):
+        target_description = descriptions[insert_index]
+    else:
+        target_description = descriptions[-1] if descriptions else "(no description)"
+
+    print(f"Target description for new instruction (insert_index={insert_index}): {target_description}")
+    prompt += (
+        "\nThe corresponding image description for this new instruction is:\n"
+        f"{target_description}\n\n"
+    )
+
+    prompt += (
+        "Write only one short, clear sentence for this instruction.\n"
+        "Do not reference step numbers, images, or previous steps.\n"
+        "Respond with only the sentence."
+    )
+
+    response = generate(model=model, prompt=prompt)
+    raw = response["response"].strip()
+
+    clean = re.sub(r'^["“”]+|["“”]+$', '', raw).strip()
+
+    print(f"Generated new instruction (insert_index={insert_index}): {clean}")
+
+    return clean
+
 
 def refine_instructions(instructions, user_context, model="llava"):
     parser = PydanticOutputParser(pydantic_object=InstructionSet)
