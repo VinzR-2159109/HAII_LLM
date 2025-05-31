@@ -50,6 +50,11 @@
       opacity: 0.0;
     }
 
+    .instruction.locked {
+      opacity: 0.6;
+      border: 2px solid #4c5763;
+    }
+
     .lock-row {
       display: flex;
       justify-content: space-between;
@@ -88,6 +93,25 @@
     button:hover {
       background-color: #218838;
     }
+
+    .instruction-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-left: 12px;
+    }
+
+    .lock-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+    }
+
 
     .delete-btn {
         background-color: #f44336;
@@ -146,8 +170,13 @@
         <div class="lock-row">
           <span class="instruction-number">1.</span>
         </div>
+
         <textarea name="text_{{ forloop.counter0 }}" rows="2">{{ instruction }}</textarea>
+
+        <div class="instruction-btns">
           <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+          <button type="button" class="lock-btn" onclick="lockInstruction(this)">🔓</button>
+        </div>
       </div>
     </div>
     {% endfor %}
@@ -157,10 +186,17 @@
     </div>
   </div>
 
+  <label for="user_refinements" style="font-size: 18px; font-weight: bold; margin: 10 10 0 0;">Refine Instructions:</label>
+  <div id="refine_div" style="display: flex; flex-direction: row;">
+    <textarea name="user_refinements" rows="4" placeholder="Type here to refine not locked instructions"></textarea>
+    <button type="button" id="refine_button" style="background-color: gray; font-size: xx-large; margin-left: 10px;">🔄</button>
+  </div>
+
   <div class="submit-wrapper">
     <button type="submit">Save Final Instructions</button>
   </div>
 </form>
+
 
 <script>
   const sortable = Sortable.create(document.getElementById('instructionList'), {
@@ -196,21 +232,40 @@
       const instruction = document.createElement('div');
       instruction.className = 'instruction';
       instruction.innerHTML = `
-        <span class="instruction-number">${count + 1}</span>
-        <textarea name="text_${count}" rows="2"></textarea>
-        <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+          <div class="lock-row">
+            <span class="instruction-number">${count + 1}.</span>
+          </div>
+          <textarea name="text_${count}" rows="2"></textarea>
+          <div class="instruction-btns">
+            <button type="button" class="delete-btn" onclick="deleteInstruction(this)">Delete</button>
+            <button type="button" class="lock-btn" onclick="lockInstruction(this)">Lock</button>
+          </div>
       `;
 
       group.appendChild(addButton);
       group.appendChild(instruction);
 
-      // Insert the new instruction group BEFORE the clicked "Add Here" button's group
       parent.insertBefore(group, button.closest('.instruction-group'));
-
-
+    
       updateIndexes();
   }
 
+  function lockInstruction(button) {
+    const instruction = button.closest('.instruction');
+    const textarea = instruction.querySelector('textarea');
+    
+    instruction.classList.toggle('locked');
+
+    if (instruction.classList.contains('locked')) {
+        button.textContent = '🔒';
+        button.style.backgroundColor = 'gray';
+        textarea.readOnly = true;
+    } else {
+        button.textContent = '🔓';
+        button.style.backgroundColor = '#007bff';
+        textarea.readOnly = false;
+    }
+  }
 
   function updateIndexes() {
       const parent = document.getElementById('instructionList');
@@ -231,6 +286,59 @@
       });
 
       totalField.value = groups.length;
+  }
+
+  document.getElementById('refine_button').addEventListener('click', async function() {
+      const refineText = document.querySelector('textarea[name="user_refinements"]').value.trim();
+
+      const instructionElements = document.querySelectorAll('.instruction');
+      const instructions = [];
+      instructionElements.forEach((instruction, index) => {
+          const textarea = instruction.querySelector('textarea');
+          const locked = instruction.classList.contains('locked');
+
+          instructions.push({
+              index: index,
+              text: textarea.value,
+              locked: locked
+          });
+      });
+
+      const response = await fetch('/refine/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              refine_context: refineText,
+              instructions: instructions
+          })
+      });
+
+      const data = await response.json();
+
+      if (data.refined_instructions) {
+          instructionElements.forEach((instruction, index) => {
+              const textarea = instruction.querySelector('textarea');
+              textarea.value = data.refined_instructions[index];
+          });
+      }
+  });
+
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
   }
 </script>
 

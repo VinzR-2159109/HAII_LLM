@@ -124,10 +124,8 @@ def generate_instructions(descriptions, model="llava"):
         images.append(image_base64)
         image_instructions.append(item['description'])
 
-    # Setup parser
     parser = PydanticOutputParser(pydantic_object=InstructionSet)
 
-    # Build prompt
     prompt = (
         "You are a careful assistant that generates one short, clear instruction per image description, "
         "suitable for people with cognitive disabilities.\n"
@@ -139,7 +137,6 @@ def generate_instructions(descriptions, model="llava"):
 
     prompt += "\n".join(f"- {desc}" for desc in image_instructions)
 
-    # ⚠️ Use clear manual format instructions!
     prompt += (
         "\n\nNow respond in this exact JSON format:\n\n"
         "{\n"
@@ -152,12 +149,49 @@ def generate_instructions(descriptions, model="llava"):
         "Respond with JSON only. Do not include explanations. Do not include a JSON schema. Do not include markdown (no ```json)."
     )
 
-    # Generate
     response = generate(model=model, prompt=prompt, images=images)
     raw = response["response"]
     print("Raw response:", raw)
 
-    # Let LangChain parser handle parsing
+    try:
+        parsed_obj = parser.parse(raw)
+        return parsed_obj.instructions
+    except Exception as e:
+        print(f"LangChain parsing failed: {e}")
+        return []
+
+def refine_instructions(instructions, user_context, model="llava"):
+    parser = PydanticOutputParser(pydantic_object=InstructionSet)
+
+    prompt = (
+        "You are refining existing work instructions for people with cognitive disabilities.\n\n"
+        "Context provided by the user:\n"
+        f"{user_context.strip()}\n\n"
+        "Here are the current instructions:\n"
+    )
+
+    prompt += "\n".join(f"- {instr}" for instr in instructions)
+
+    prompt += (
+        "\n\nPlease rewrite each instruction to be clearer, simpler, and more actionable for the target audience.\n"
+        "Do not reference numbering or images.\n"
+        "Do not merge instructions.\n"
+        "Preserve the original step order.\n\n"
+        "Respond in this exact JSON format:\n\n"
+        "{\n"
+        '  "instructions": [\n'
+        '    "Refined instruction 1.",\n'
+        '    "Refined instruction 2.",\n'
+        '    "..."\n'
+        "  ]\n"
+        "}\n\n"
+        "Respond with JSON only. Do not include explanations. Do not include a JSON schema. Do not include markdown."
+    )
+
+    response = generate(model=model, prompt=prompt)
+    raw = response["response"]
+    print("Raw response:", raw)
+
     try:
         parsed_obj = parser.parse(raw)
         return parsed_obj.instructions

@@ -4,9 +4,10 @@ import shutil
 
 from django.shortcuts import render, redirect
 from django.conf import settings
+from django.http import JsonResponse
 
 from .forms import UploadForm
-from .utils import handle_video, describe_images, generate_instructions
+from .utils import handle_video, describe_images, generate_instructions, refine_instructions
 
 def upload_view(request):
     if request.method == "POST":
@@ -99,3 +100,49 @@ def save_instructions_view(request):
                 f.write(f"{i}. {item['text']}\n")
 
     return render(request, "done.html", {"instructions": final})
+
+def refine_instructions_view(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        refine_context = data.get("refine_context", "")
+        instructions = data.get("instructions", [])
+
+        unlocked_texts = []
+        unlocked_mapping = []
+
+        for instr in instructions:
+            if not instr["locked"]:
+                text = instr["text"].strip()
+                if text != '':
+                    unlocked_mapping.append(True)
+                    unlocked_texts.append(text)
+                else:
+                    unlocked_mapping.append(False)
+
+        print(f"Unlocked texts to refine: {unlocked_texts}")
+
+        refined_texts = refine_instructions(unlocked_texts, refine_context)
+
+        print(f"Refined texts: {refined_texts}")
+
+        result = []
+        unlocked_index = 0
+
+        for instr in instructions:
+            if instr["locked"]:
+                result.append(instr["text"])
+            else:
+                if unlocked_mapping[unlocked_index]:
+                    result.append(refined_texts[unlocked_index])
+                    unlocked_index += 1
+                else:
+                    result.append('')
+
+        return JsonResponse({"refined_instructions": result})
+
+    except Exception as e:
+        print(f"Error in refine_instructions_view: {e}")
+        return JsonResponse({"error": str(e)}, status=500)

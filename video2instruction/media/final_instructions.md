@@ -1,5 +1,4 @@
 # Final Instructions
 
-1. Organize candies in different bowls
-2. Place bowls near the microwave
-3. Enjoy colorful and sweet treats
+1. Get some cups on the table.
+2. Place one ball in each cup on the table.
